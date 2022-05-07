@@ -1,28 +1,43 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const cors = require('cors');
+const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
 
 app.get('/', (req, res) => {
     res.send("Welcome to my server");
 })
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vt6on.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 console.log(uri)
 
 const run = async () => {
     try {
         await client.connect();
+        const bookCollection = client.db('bookDepo').collection('book');
+
+        // get all book
+        app.get('/book', async (req, res) => {
+            const query = req.body;
+            const cursor = bookCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
         console.log("DB connected");
-    } catch (error) {
-        console.log(error)
+    } finally {
+
     }
 }
 
-run();
+run().catch(console.dir);
 
 
 app.listen(port, () => {
