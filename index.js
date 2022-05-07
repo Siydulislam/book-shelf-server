@@ -24,14 +24,16 @@ const run = async () => {
         const bookCollection = client.db('bookDepo').collection('book');
 
         // get all book
+        // http://localhost:5000/book/
         app.get('/book', async (req, res) => {
             const query = req.body;
             const cursor = bookCollection.find(query);
-            const result = await cursor.toArray();
-            res.send(result);
+            const books = await cursor.toArray();
+            res.send(books);
         });
 
         // get a specific book
+        // http://localhost:5000/book/6276c29ca41442594cfebbca
         app.get('/book/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -40,13 +42,48 @@ const run = async () => {
         });
 
         // post a new book
+        // http://localhost:5000/book
         app.post('/book', async (req, res) => {
             const newBook = req.body;
             const result = await bookCollection.insertOne(newBook);
             res.send(result);
-        })
+        });
+
+        // update a specific book
+        // 
+        // app.put('/book/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const data = req.body;
+        //     const filter = { _id: ObjectId(id) };
+        //     const options = { upsert: true };
+
+        //     const updateDoc = {
+        //         $set: {
+        //             name: data.name,
+        //             description: data.description,
+        //             price: data.price,
+        //             quantity: data.quantity,
+        //             supplier: data.supplier,
+        //         }
+        //     }
+
+        //     const result = await bookCollection.updateOne(
+        //         filter,
+        //         updateDoc,
+        //         options
+        //     );
+
+        //     res.send(result);
+        // })
 
         // delete a specific book
+        // 
+        app.delete('/book/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const deletedBook = await bookCollection.deleteOne(filter);
+            res.send(deletedBook);
+        })
 
         console.log("DB connected");
     } finally {
