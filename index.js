@@ -39,6 +39,15 @@ const run = async () => {
             res.send(book);
         });
 
+        // post a new book
+        app.post('/book', async (req, res) => {
+            const newBook = req.body;
+            const result = await bookCollection.insertOne(newBook);
+            res.send(result);
+        })
+
+        // delete a specific book
+
         console.log("DB connected");
     } finally {
 
