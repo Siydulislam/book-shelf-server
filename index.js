@@ -18,7 +18,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 console.log(uri)
 
-const run = async () => {
+async function run() {
     try {
         await client.connect();
         const bookCollection = client.db('bookDepo').collection('book');
@@ -49,32 +49,29 @@ const run = async () => {
             res.send(result);
         });
 
-        // update a specific book
+        // update a specific book quantity and delivered quantity
         // 
-        // app.put('/book/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const data = req.body;
-        //     const filter = { _id: ObjectId(id) };
-        //     const options = { upsert: true };
+        app.put('/book/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedInfo = req.body;
+            console.log(updatedInfo)
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
 
-        //     const updateDoc = {
-        //         $set: {
-        //             name: data.name,
-        //             description: data.description,
-        //             price: data.price,
-        //             quantity: data.quantity,
-        //             supplier: data.supplier,
-        //         }
-        //     }
+            const updateDoc = {
+                $set: {
+                    quantity: updatedInfo.quantity,
+                    sold: updatedInfo.sold
+                }
+            }
+            const result = await bookCollection.updateOne(
+                filter,
+                updateDoc,
+                options
+            )
 
-        //     const result = await bookCollection.updateOne(
-        //         filter,
-        //         updateDoc,
-        //         options
-        //     );
-
-        //     res.send(result);
-        // })
+            res.send(result);
+        })
 
         // delete a specific book
         // 
@@ -82,7 +79,8 @@ const run = async () => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const deletedBook = await bookCollection.deleteOne(filter);
-            res.send(deletedBook);
+            console.log(deletedBook);
+            // res.send(deletedBook);
         })
 
         console.log("DB connected");
