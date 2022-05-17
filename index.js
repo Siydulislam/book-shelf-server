@@ -79,8 +79,7 @@ async function run() {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const deletedBook = await bookCollection.deleteOne(filter);
-            console.log(deletedBook);
-            // res.send(deletedBook);
+            res.send(deletedBook);
         })
 
         console.log("DB connected");
