@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ObjectId } = require('mongodb');
+const { decode } = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -11,10 +13,24 @@ app.use(express.json());
 
 app.get('/', (req, res) => {
     res.send("Welcome to my server");
-})
+});
+
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'Unauthorized Access!' });
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden Access' });
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vt6on.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 console.log(uri)
 
@@ -22,6 +38,15 @@ async function run() {
     try {
         await client.connect();
         const bookCollection = client.db('bookDepo').collection('book');
+
+        // Auth
+        app.post('/login', async (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1h'
+            })
+            res.send({ accessToken });
+        });
 
         // get all book
         // http://localhost:5000/book/
@@ -40,6 +65,21 @@ async function run() {
             const book = await bookCollection.findOne(query);
             res.send(book);
         });
+
+        // get book of individual
+        app.get('/myBooks', verifyJWT, async (req, res) => {
+            const decodedEmail = req.decoded.email;
+            const email = req.query.email;
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const cursor = bookCollection.find(query);
+                const myBooks = await cursor.toArray();
+                res.send(myBooks);
+            }
+            else {
+                res.status(403).send({ message: 'Access Forbidden!' });
+            }
+        })
 
         // post a new book
         // http://localhost:5000/book
