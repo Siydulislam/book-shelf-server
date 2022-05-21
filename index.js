@@ -49,7 +49,6 @@ async function run() {
         });
 
         // get all book
-        // http://localhost:5000/book/
         app.get('/book', async (req, res) => {
             const query = req.body;
             const cursor = bookCollection.find(query);
@@ -58,7 +57,6 @@ async function run() {
         });
 
         // get a specific book
-        // http://localhost:5000/book/6276c29ca41442594cfebbca
         app.get('/book/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -82,7 +80,6 @@ async function run() {
         })
 
         // post a new book
-        // http://localhost:5000/book
         app.post('/book', async (req, res) => {
             const newBook = req.body;
             const result = await bookCollection.insertOne(newBook);
@@ -90,11 +87,9 @@ async function run() {
         });
 
         // update a specific book quantity and delivered quantity
-        // 
         app.put('/book/:id', async (req, res) => {
             const id = req.params.id;
             const updatedInfo = req.body;
-            console.log(updatedInfo)
             const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
 
@@ -114,7 +109,6 @@ async function run() {
         })
 
         // delete a specific book
-        // 
         app.delete('/book/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
